@@ -1,0 +1,49 @@
+<html>
+<head>
+	<title>WM Stroop Experiment</title>
+
+
+	<script src="jquery-1.11.2.min.js"></script>
+  <script src="underscore.js"></script>
+	<script src="mmturkey.js"></script>
+
+	<link rel="stylesheet" href="stroop_style.css" />
+</head>
+<body>
+
+ 
+<div class="slide" id="init-task">
+<!-- so are we not counterbalancing button presses? -->
+    <div class="instructions" id="classic-instruct">
+		<p>Stroop task</p>
+	</div>
+	<div class="instructions" id="wm-instruct">
+		<img src="images/wm_stroop_remind.jpg" width="533" height="349" alt="Instructions">
+	</div>
+	<button id="start-button" type="button">Start</button>
+</div>
+
+ 
+
+<div class="slide" id="stage">
+	<p class="stim" id="intertrial">*</p>
+	<p class="stim" id="word">WORD</p>
+	<p class="stim" id="interstim">+</p>
+	<div class="stim patch" id="red-patch"></div>
+	<div class="stim patch" id="blue-patch"></div>
+	<div class="stim patch" id="green-patch"></div>
+	<div class="stim patch" id="yellow-patch"></div>
+
+	
+	
+	<p id="response"></p>
+</div>
+ 
+<div class="slide" id="finished">
+	You're finished - thanks for participating! Submitting to Mechanical Turk...
+</div>
+ 
+<script src="stroop_exper.js"></script>
+
+</body>
+</html>

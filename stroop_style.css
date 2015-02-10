@@ -1,0 +1,120 @@
+body {
+	padding: 0;
+	margin: 0;
+	background-color: #808080;
+	font-family: Palatino Linotype, Bookman Antiqua, Palatino, serif;
+	font-size: 16px;
+	line-height: 20px;
+}
+
+ 
+.slide {
+	width: 95%;
+	height: 95%;
+	display: none;
+	position: absolute;
+	margin: 0;
+	margin-left: 0.5%;
+	padding: 1% 2% 1% 2%;
+  text-align: center;
+}
+
+input, select, button {font-family: Georgia, serif; font-size: 14px;}
+
+button {
+/*	background: url(images/button-gradient.png);*/
+	border: 1px solid #999;
+	border-top: 1px solid #e0e0e0;
+	border-left: 1px solid #e0e0e0;
+	margin: 10px;
+	padding-left: 5px;
+	padding-right: 5px;
+	height: 29px;
+	min-width: 70px;
+}
+button:active {
+	border-left: 1px solid #c9c9c9;
+	border-top: 1px solid #c9c9c9;
+	background: none;
+	background-color: #c9c9c9;
+}
+
+button[disabled] {
+	background: url(zen-button.png);
+	border: 1px solid #999;
+	border-top: 1px solid #e0e0e0;
+	border-left: 1px solid #e0e0e0;
+	cursor: not-allowed;
+}
+/* change below for experiment */
+
+/* do i need this?? it's just an image. does text-align center images? */
+.instructions {
+  text-align: center;
+  width: 600px;
+  height: 600px;
+  display: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* change based on key types; ID selector */
+#odd-key, #even-key {
+  background-color: #e3e3e3;
+  padding: 2px;
+  border: 1px outset #cccccc;
+  font-family: Courier New;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+/* class selector */
+.block-text {
+  width: 500px;
+  text-align: justify;
+  margin: 0 auto;
+  margin-bottom: 1em;
+}
+
+/* will change to word*/
+#number {
+  font-size: 42px;
+  font-family: Arial, sans-serif;
+  margin: 0 auto;
+  text-align: center;
+  width: 100px;
+  margin-top: 100px;
+}
+
+.stim {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: bold;
+}
+
+.patch {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	height: 75px;
+	width: 200px;
+	margin-top: -40;
+	margin-left: -100;
+}	
+
+#red-patch {
+	background-color: #E10000;
+}
+
+#green-patch {
+	background-color: #19C819;
+}
+
+#blue-patch {
+	background-color: #0000FF;	
+}
+
+#yellow-patch {
+	background-color: #E1D728;
+}
