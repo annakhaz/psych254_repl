@@ -43,6 +43,7 @@ $(function(){
     $('#start-button').on("click", function() {
       $instructSlide.hide()
       startTrials(task); 
+      $(this).off(); // to avoid restarting task 1 during task 2
     })
   }
   
@@ -60,8 +61,9 @@ $(function(){
     var $word = $('#word');
     
     if (task === 'wm') {
-      $word.text(COLORS[WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][0] - 1])
+      $('#word-text').text(COLORS[WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][0] - 1])
       $word.show()
+      debugger
       setTimeout(function() {
         $word.hide()
         //interTrial(task, trialsLeft) //for testing
@@ -70,8 +72,8 @@ $(function(){
     }
     
     if (task === 'classic') {
-      $word.text(COLORS[WM_TRIAL_ITEMS[CLASSIC_NUM_TRIALS-trialsLeft][0] - 1]) //temp; need to make classic trial items
-      $word.css('color',_(COLORS).shuffle()[0])
+      $('#word-text').text(COLORS[WM_TRIAL_ITEMS[CLASSIC_NUM_TRIALS - trialsLeft][0] - 1]) //temp; need to make classic trial items
+      $word.css('color', _(COLORS).shuffle()[0])
       $word.show()
       setTimeout(function() {
         $word.hide()
@@ -146,7 +148,7 @@ $(function(){
   }
   
   var finishTask = function() {
-      num_tasks_run ++;
+      num_tasks_run++;
       $("#stage").hide()
       if (num_tasks_run === 1) {
         initTask(TASK_ORDER[1])
