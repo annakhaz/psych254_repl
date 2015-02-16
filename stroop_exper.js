@@ -1,30 +1,15 @@
 $(function(){
+    
   
-  // TODO figure out why fixation and patch still showing up during classic!!! something is wonky.
-  
-  
-  var CLASSIC_NUM_TRIALS = 4; //96;
-  var WM_NUM_TRIALS = 10; //120;
-  var NUM_BLOCKS = 4;
+  var CLASSIC_NUM_TRIALS = 4; //96; --> dividing in half, 49 -> 48 to be divis by 4
+  var WM_NUM_TRIALS = 10; //120; --> dividing in half, 60
+  var NUM_BLOCKS = 2;
   
   var TASK_ORDER = _(['classic', 'wm']).shuffle(); 
-  var num_tasks_run = 0
+  var num_tasks_run = 0;
   
-  // [word1, patch, word2, ?, congruency]
-  var WM_TRIAL_ITEMS = _([[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,3,1,2],[1,1,3,1,2],[1,1,3,1,2],
-  [1,1,2,1,2],[1,1,4,1,2],[1,1,4,1,2],[1,1,4,1,2],[1,3,1,2,1],[1,3,1,2,1],[1,3,1,2,1],[1,2,1,2,1],[1,2,1,2,1],[1,4,1,2,1],
-  [1,3,2,2,2],[1,3,4,2,2],[1,3,3,2,2],[1,4,4,2,2],[1,4,3,2,2],[1,4,2,2,2],[1,2,2,2,2],[1,2,3,2,2],[1,2,4,2,2],[2,2,2,1,1],
-  [2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,2,1,1],[2,2,3,1,2],[2,2,3,1,2],
-  [2,2,1,1,2],[2,2,1,1,2],[2,2,1,1,2],[2,2,4,1,2],[2,2,4,1,2],[2,2,4,1,2],[2,1,2,2,1],[2,1,2,2,1],[2,1,2,2,1],[2,3,2,2,1],
-  [2,3,2,2,1],[2,3,2,2,1],[2,4,2,2,1],[2,4,2,2,1],[2,4,2,2,1],[2,1,1,2,2],[2,1,4,2,2],[2,4,1,2,2],[2,4,3,2,2],[2,4,4,2,2],
-  [2,3,1,2,2],[2,3,3,2,2],[2,3,4,2,2],[3,3,3,1,1],[3,3,3,1,1],[3,3,3,1,1],[3,3,3,1,1],[3,3,3,1,1],[3,3,3,1,1],[3,3,3,1,1],
-  [3,3,1,1,2],[3,3,1,1,2],[3,3,1,1,2],[3,3,2,1,2],[3,3,4,1,2],[3,3,4,1,2],[3,3,4,1,2],[3,1,3,2,1],[3,1,3,2,1],[3,1,3,2,1],
-  [3,2,3,2,1],[3,2,3,2,1],[3,4,3,2,1],[3,4,3,2,1],[3,4,3,2,1],[3,1,1,2,2],[3,1,4,2,2],[3,2,1,2,2],[3,2,4,2,2],[3,4,1,2,2],
-  [3,4,2,2,2],[4,4,4,1,1],[4,4,4,1,1],[4,4,4,1,1],[4,4,4,1,1],[4,4,4,1,1],[4,4,4,1,1],[4,4,3,1,2],[4,4,3,1,2],[4,4,3,1,2],
-  [4,4,2,1,2],[4,4,2,1,2],[4,4,2,1,2],[4,4,1,1,2],[4,4,1,1,2],[4,4,1,1,2],[4,3,4,2,1],[4,3,4,2,1],[4,3,4,2,1],[4,2,4,2,1],
-  [4,2,4,2,1],[4,1,4,2,1],[4,1,4,2,1],[4,1,3,2,2],[4,3,1,2,2],[4,3,3,2,2],[4,3,2,2,2],[4,2,1,2,2],[4,2,3,2,2],[4,2,2,2,2]]).shuffle();  
-  
-  var COLORS = ['red', 'green', 'blue', 'yellow']
+  CLASSIC_TRIAL_ITEMS = _(classic_items).shuffle();
+  WM_TRIAL_ITEMS = _(wm_items).shuffle();
   
   var initTask = function(task) {
     
@@ -61,20 +46,20 @@ $(function(){
     var $word = $('#word');
     
     if (task === 'wm') {
-      $('#word-text').text(COLORS[WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][0] - 1])
+      $('#word-text').text(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][0])
       $word.show()
       debugger
       setTimeout(function() {
         $word.hide()
-        //interTrial(task, trialsLeft) //for testing
         interStim('patch', trialsLeft) 
       }, 500);
     }
     
     if (task === 'classic') {
-      $('#word-text').text(COLORS[WM_TRIAL_ITEMS[CLASSIC_NUM_TRIALS - trialsLeft][0] - 1]) //temp; need to make classic trial items
-      $word.css('color', _(COLORS).shuffle()[0])
+      $('#word-text').text(CLASSIC_TRIAL_ITEMS[CLASSIC_NUM_TRIALS - trialsLeft][1])
+      $word.css('color', CLASSIC_TRIAL_ITEMS[CLASSIC_NUM_TRIALS-trialsLeft][0])
       $word.show()
+      // new date to start RT?
       setTimeout(function() {
         $word.hide()
         interTrial(task, trialsLeft)
@@ -111,8 +96,8 @@ $(function(){
     } else if (next === 'probe') {
       setTimeout(function() {
         $fix.hide()
-        interTrial('wm', trialsLeft) //temp
-        //displayProbe(trialsLeft) //temp
+        //interTrial('wm', trialsLeft) //temp
+        displayProbe(trialsLeft)
       }, 1000);
     }
    
@@ -120,9 +105,9 @@ $(function(){
 
   
   var displayPatch = function(trialsLeft) {
-    var $patch = $('#'.concat(COLORS[WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][1] - 1],"-patch"));
+    var $patch = $('#'.concat(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][1],"-patch"));
     $patch.show()
-    
+    // new date for RT?
     setTimeout(function() {
       $patch.hide()
       interStim('probe', trialsLeft)
@@ -130,14 +115,20 @@ $(function(){
   }
   
   var displayProbe = function(trialsLeft) {
-    //
+    var $probe = $('#probe');
+    $('#probe-text').text(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][2])
+    $probe.show()
+    // new date for RT?
+    // capture response, can call saveTrialData now to calc accuracy, RTs, and record answers
+    setTimeout(function() {
+      $probe.hide()
+      interTrial('wm', trialsLeft) 
+    }, 3000);
   }
   
   var saveTrialData = function() {
     // calc accuracy, RT; record answers; save into data struc
   }
-  
-
   
   var runClassic = function() {
     displayWord('classic', CLASSIC_NUM_TRIALS)

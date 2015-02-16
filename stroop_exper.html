@@ -15,9 +15,10 @@
 <div class="slide" id="init-task">
 <!-- so are we not counterbalancing button presses? -->
     <div class="instructions" id="classic-instruct">
-		<p>Stroop task</p>
+		<h1>Color-Naming Task</h1>
 	</div>
 	<div class="instructions" id="wm-instruct">
+		<h1>Memory and Color-Naming Task</h1>
 		<img src="images/wm_stroop_remind.jpg" width="533" height="349" alt="Instructions">
 	</div>
 	<button id="start-button" type="button">Start</button>
@@ -33,6 +34,8 @@
 	<div class="stim patch" id="blue-patch"></div>
 	<div class="stim patch" id="green-patch"></div>
 	<div class="stim patch" id="yellow-patch"></div>
+	<div class="stim" id="probe"><p class="stim-text" id="probe-text">WORD</p></div>
+  
 
 	
 	
@@ -42,7 +45,7 @@
 <div class="slide" id="finished">
 	You're finished - thanks for participating! Submitting to Mechanical Turk...
 </div>
- 
+<script src='items.js'></script>
 <script src="stroop_exper.js"></script>
 
 </body>
