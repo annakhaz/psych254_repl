@@ -1,14 +1,22 @@
 $(function(){
 
+//set num trials and blocks
+
   var CLASSIC_NUM_TRIALS = 4; //96; --> dividing in half, 49 -> 48 to be divis by 4
   var WM_NUM_TRIALS = 4; //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
 
+//set up task order (classic vs wm stroop first)
+
   var TASK_ORDER = _(['classic', 'wm']).shuffle();
   var numTasksRun = 0;
 
+//shuffle stims
+
   var CLASSIC_TRIAL_ITEMS = _(classic_items).shuffle();
   var WM_TRIAL_ITEMS = _(wm_items).shuffle();
+
+//responses
 
   var COLOR_RESPONSE_MAPPINGS = {
     'a': 'red',
@@ -20,21 +28,27 @@ $(function(){
   var SAME_RESPONSE_MAPPINGS = {'0': 'diff', '1': 'same'};
 
 // timing
-  var ITI = 1000;
-  var WM_ISI = 1000;
-  var WM_ISI2 = 2000;
-  var WM_WORD1 = 500; //1000; // <temp 500;
+
+  var WM_ITI = 1500;
+  var WM_ISI1 = 2000;
+  var WM_ISI2 = 1000;
+  var WM_WORD1 = 1000;
   var WM_PATCH = 500;
   var WM_PROBE = 3000;
-  var CLASSIC_WORD = 500; //1000; // <temp 500;
+  var CLASSIC_ITI = 1000;
+  var CLASSIC_WORD = 500;
+
+// output
 
   var experimentData = {
     subID: 0,
     taskOrder: TASK_ORDER,
     classicTrialOrder: CLASSIC_TRIAL_ITEMS,
     wmTrialOrder: WM_TRIAL_ITEMS,
-    trials: []
+    trialData: []
   };
+
+//start! show instructions and wait for click
 
   var initTask = function(task) {
 
@@ -57,11 +71,50 @@ $(function(){
     })
   };
 
+// show stage and start countdown
+
   var startTrials = function(task) {
     $('.stim').hide()
     $('#stage').show()
     countDown(3, task)
   };
+
+
+// countdown to first trial
+
+  var countDown = function(number, task) {
+    var $fix = $('#intertrial');
+    if (number > 0) {
+        $('#fix-text').text(String(number))
+        $fix.show()
+        setTimeout(function() {
+          $fix.hide()
+          countDown(number - 1, task)
+        }, 1000);
+      } else {
+        setTimeout(function () {
+          $fix.hide()
+          $('#fix-text').text('*')
+          if (task === 'classic') {
+            runClassic()
+          } else if (task === 'wm') {
+            runWM()
+          }
+        });
+      };
+  };
+
+  // run one of two tasks
+
+  var runClassic = function() {
+    displayWord('classic', CLASSIC_NUM_TRIALS)
+  };
+
+  var runWM = function() {
+    displayWord('wm', WM_NUM_TRIALS)
+  };
+
+// show word (colored for classic, bw word1 for wm)
 
   var displayWord = function(task, trialsLeft) {
     var $word = $('#word');
@@ -101,9 +154,16 @@ $(function(){
 
   };
 
+// ITI between trials, send to next task/post-task if finished
+
   var interTrial = function(task, trialObject) {
     var $interTrial = $('#intertrial');
     $interTrial.show()
+    if (task === 'wm') {
+      var ITI = WM_ITI;
+    } else {
+      var ITI = CLASSIC_ITI;
+    };
     setTimeout(function() {
       $interTrial.hide()
       saveTrialData(trialObject)
@@ -115,6 +175,8 @@ $(function(){
     }, ITI);
   };
 
+// both ISIs for WM task
+
   var interStim = function(next, trialObject) {
     var $fix = $('#interstim');
     $fix.show()
@@ -122,15 +184,16 @@ $(function(){
       setTimeout(function() {
         $fix.hide()
         displayPatch(trialObject)
-      }, WM_ISI2);
+      }, WM_ISI1);
     } else if (next === 'probe') {
       setTimeout(function() {
         $fix.hide()
         displayProbe(trialObject)
-      }, WM_ISI);
+      }, WM_ISI2);
     }
   };
 
+// color patch for wm task
 
   var displayPatch = function(trialObject) {
     trialObject.patch = WM_TRIAL_ITEMS[trialObject.trialNum][1];
@@ -148,6 +211,8 @@ $(function(){
       interStim('probe', trialObject)
     }, WM_PATCH);
   };
+
+// bw word probe for wm task
 
   var displayProbe = function(trialObject) {
     var $probe = $('#probe');
@@ -173,6 +238,8 @@ $(function(){
     }, WM_PROBE);
   };
 
+// color/same vs different response handling & mapping
+
   var mapColorResponse = function(keyCode) {
     var responseKey = String.fromCharCode(keyCode);
     return COLOR_RESPONSE_MAPPINGS[responseKey];
@@ -195,39 +262,11 @@ $(function(){
     trialObject.sameRT = responseTime - displayStart;
   };
 
+// add trial object to output object
+
   var saveTrialData = function(trialObject) {
     console.log('pushing: ', trialObject)
-    experimentData.trials.push(trialObject)
-  };
-
-  var runClassic = function() {
-    displayWord('classic', CLASSIC_NUM_TRIALS)
-  };
-
-  var runWM = function() {
-    displayWord('wm', WM_NUM_TRIALS)
-  };
-
-  var countDown = function(number, task) {
-    var $fix = $('#intertrial');
-    if (number > 0) {
-        $('#fix-text').text(String(number))
-        $fix.show()
-        setTimeout(function() {
-          $fix.hide()
-          countDown(number - 1, task)
-        }, 1000);
-      } else {
-        setTimeout(function () {
-          $fix.hide()
-          $('#fix-text').text('*')
-          if (task === 'classic') {
-            runClassic()
-          } else if (task === 'wm') {
-            runWM()
-          }
-        });
-      };
+    experimentData.trialData.push(trialObject)
   };
 
   var finishTask = function() {
@@ -241,6 +280,7 @@ $(function(){
       }
   };
 
+// here we go!
 
   initTask(TASK_ORDER[0]);
 
