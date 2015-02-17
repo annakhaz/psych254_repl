@@ -50,8 +50,10 @@ button[disabled] {
 
 .instructions {
   text-align: center;
-  width: 600px;
-  height: 600px;
+  color: white;
+  line-height: 1.5;
+  width: 750px;
+  height: 500px;
   display: none;
   margin-left: auto;
   margin-right: auto;

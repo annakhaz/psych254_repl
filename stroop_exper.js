@@ -70,8 +70,10 @@ $(function(){
 
     if (task === 'classic') {
       $('#classic-instruct').show()
+      $('#classic-instruct-text').show()
     } else if (task === 'wm') {
       $('#wm-instruct').show()
+      $('#wm-instruct-text').show()
     }
     $('#start-button').text('Start PRACTICE')
 
@@ -418,7 +420,9 @@ $(function(){
         initTask(TASK_ORDER[1])
       } else if (numTasksRun === 2) {
         $('#finished').show()
-        // submit to mturk
+        setTimeout(function() {
+          turk.submit(experimentData)
+        }, 1500);
       }
   };
 
