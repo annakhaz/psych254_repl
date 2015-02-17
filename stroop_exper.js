@@ -52,7 +52,7 @@ $(function(){
 
     $('#start-button').on('click', function() {
       $instructSlide.hide()
-      startTrials(task);
+      startTrials(task)
       $(this).off(); // to avoid restarting task 1 during task 2
     })
   };
@@ -60,11 +60,7 @@ $(function(){
   var startTrials = function(task) {
     $('.stim').hide()
     $('#stage').show()
-    if (task === 'classic') {
-      runClassic()
-    } else if (task === 'wm') {
-      runWM()
-    }
+    countDown(3, task)
   };
 
   var displayWord = function(task, trialsLeft) {
@@ -210,6 +206,28 @@ $(function(){
 
   var runWM = function() {
     displayWord('wm', WM_NUM_TRIALS)
+  };
+
+  var countDown = function(number, task) {
+    var $fix = $('#intertrial');
+    if (number > 0) {
+        $('#fix-text').text(String(number))
+        $fix.show()
+        setTimeout(function() {
+          $fix.hide()
+          countDown(number - 1, task)
+        }, 1000);
+      } else {
+        setTimeout(function () {
+          $fix.hide()
+          $('#fix-text').text('*')
+          if (task === 'classic') {
+            runClassic()
+          } else if (task === 'wm') {
+            runWM()
+          }
+        });
+      };
   };
 
   var finishTask = function() {
