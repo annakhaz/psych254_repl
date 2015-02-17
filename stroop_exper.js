@@ -1,7 +1,7 @@
 $(function(){
 
-  var CLASSIC_NUM_TRIALS = 2; //96; --> dividing in half, 49 -> 48 to be divis by 4
-  var WM_NUM_TRIALS = 2; //120; --> dividing in half, 60 -> 72 to work with stim balancing
+  var CLASSIC_NUM_TRIALS = 4; //96; --> dividing in half, 49 -> 48 to be divis by 4
+  var WM_NUM_TRIALS = 4; //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
 
   var TASK_ORDER = _(['classic', 'wm']).shuffle();
@@ -23,10 +23,10 @@ $(function(){
   var ITI = 1000;
   var WM_ISI = 1000;
   var WM_ISI2 = 2000;
-  var WM_WORD1 = 1000; // <temp 500;
+  var WM_WORD1 = 500; //1000; // <temp 500;
   var WM_PATCH = 500;
   var WM_PROBE = 3000;
-  var CLASSIC_WORD = 1000; // <temp 500;
+  var CLASSIC_WORD = 500; //1000; // <temp 500;
 
   var experimentData = {
     subID: 0,
