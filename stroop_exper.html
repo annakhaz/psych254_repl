@@ -24,22 +24,29 @@
 	<button id="start-button" type="button">Start</button>
 </div>
 
-
+<div class="slide" id="break-block">
+  <h1>Take a short break, then click the button
+    <br> below to continue onto the next section</h1>
+  <button id="continue-button" type="button">Next Block</button>
+</div>
 
 <div class="slide" id="stage">
-	<div class="stim" id="intertrial"><p class="stim-text" id="fix-text">*</p></div>
-	<div class="stim" id="word"><p class="stim-text" id="word-text">WORD</p></div>
-	<div class="stim" id="interstim"><p class="stim-text">+</p></div>
+	<div class="stim" id="intertrial"><h1 class="stim-text" id="fix-text">*</h1></div>
+	<div class="stim" id="word"><h1 class="stim-text" id="word-text">WORD</h1></div>
+	<div class="stim" id="interstim"><h1 class="stim-text">+</h1></div>
 	<div class="stim patch" id="red-patch"></div>
 	<div class="stim patch" id="blue-patch"></div>
 	<div class="stim patch" id="green-patch"></div>
 	<div class="stim patch" id="yellow-patch"></div>
-	<div class="stim" id="probe"><p class="stim-text" id="probe-text">WORD</p></div>
-
-
-
-
-	<p id="response"></p>
+  <div class="instructions" id="probe-instruct">
+    <h1>press 1 if SAME, press 0 if DIFFERENT:</h1>
+  </div>
+	<div class="stim" id="probe">
+    <h1 class="stim-text" id="probe-text">WORD</h1>
+  </div>
+  <div class="stim" id="feedback">
+    <h1 class="stim-text" id="feedback-text"></h1>
+  </div>
 </div>
 
 <div class="slide" id="finished">

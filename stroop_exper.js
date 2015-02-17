@@ -6,6 +6,9 @@ $(function(){
   var WM_NUM_TRIALS = 4; //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
 
+  var PRACTICE_CLASSIC_NUM_TRIALS = 1; //12
+  var PRACTICE_WM_NUM_TRIALS = 1; //12
+
 //set up task order (classic vs wm stroop first)
 
   var TASK_ORDER = _(['classic', 'wm']).shuffle();
@@ -15,6 +18,9 @@ $(function(){
 
   var CLASSIC_TRIAL_ITEMS = _(classic_items).shuffle();
   var WM_TRIAL_ITEMS = _(wm_items).shuffle();
+
+  var PRACTICE_CLASSIC_TRIAL_ITEMS = _(practice_classic_items).shuffle();
+  var PRACTICE_WM_TRIAL_ITEMS = _(practice_wm_items).shuffle();
 
 //responses
 
@@ -45,7 +51,11 @@ $(function(){
     taskOrder: TASK_ORDER,
     classicTrialOrder: CLASSIC_TRIAL_ITEMS,
     wmTrialOrder: WM_TRIAL_ITEMS,
-    trialData: []
+    numBlocks: NUM_BLOCKS,
+    trialData: [],
+    practiceClassicTrialOrder: PRACTICE_CLASSIC_TRIAL_ITEMS,
+    practiceWmTrialOrder: PRACTICE_WM_TRIAL_ITEMS,
+    practiceData: []
   };
 
 //start! show instructions and wait for click
@@ -63,6 +73,7 @@ $(function(){
     } else if (task === 'wm') {
       $('#wm-instruct').show()
     }
+    $('#start-button').text('Start PRACTICE')
 
     $('#start-button').on('click', function() {
       $instructSlide.hide()
@@ -76,53 +87,128 @@ $(function(){
   var startTrials = function(task) {
     $('.stim').hide()
     $('#stage').show()
-    countDown(3, task)
+    countDown(3, task, true)
   };
 
+// countdown to first trial of either practice or real
 
-// countdown to first trial
-
-  var countDown = function(number, task) {
+  var countDown = function(number, task, practice) {
     var $fix = $('#intertrial');
     if (number > 0) {
         $('#fix-text').text(String(number))
         $fix.show()
         setTimeout(function() {
           $fix.hide()
-          countDown(number - 1, task)
+          countDown(number - 1, task, practice)
         }, 1000);
       } else {
         setTimeout(function () {
           $fix.hide()
           $('#fix-text').text('*')
           if (task === 'classic') {
-            runClassic()
+            practice ? runClassicPractice() : runClassic()
           } else if (task === 'wm') {
-            runWM()
+            practice ? runWMPractice() : runWM()
           }
         });
       };
   };
 
-  // run one of two tasks
+  // run one of two practice tasks
+
+  var runClassicPractice = function() {
+    displayWord('classic', PRACTICE_CLASSIC_NUM_TRIALS, true)
+  };
+
+  var runWMPractice = function() {
+    displayWord('wm', PRACTICE_WM_NUM_TRIALS, true)
+  };
+
+  // run real tasks
+
+  var startRealTrial = function(trialObject) {
+    var $instructSlide = $('#init-task');
+    $('#classic-instruct').hide()
+    $('#wm-instruct').hide()
+    $('#stage').hide()
+
+    $instructSlide.show()
+
+    if (trialObject.task === 'classic') {
+      $('#classic-instruct').show()
+    } else if (trialObject.task === 'wm') {
+      $('#wm-instruct').show()
+    }
+    $('#start-button').text('Start TASK')
+
+    $('#start-button').on('click', function() {
+      $instructSlide.hide()
+      $('#stage').show()
+      countDown(3, trialObject.task, false)
+      $(this).off();
+    });
+  };
 
   var runClassic = function() {
-    displayWord('classic', CLASSIC_NUM_TRIALS)
+    displayWord('classic', CLASSIC_NUM_TRIALS, false)
   };
 
   var runWM = function() {
-    displayWord('wm', WM_NUM_TRIALS)
+    displayWord('wm', WM_NUM_TRIALS, false)
+  };
+
+  // feedback (color) for practice
+
+  var giveColorFeedback = function(trialObject, nextStep) {
+    var $feedback = $('#feedback');
+    $feedback.show()
+    debugger
+    if (trialObject.colorResponse === undefined) {
+      $('#feedback-text').text('TOO SLOW!')
+    } else if (trialObject.colorAccurate === true) {
+      $('#feedback-text').text('CORRECT!')
+    } else if (trialObject.colorAccurate == false) {
+      $('#feedback-text').text('INCORRECT!')
+    }
+    setTimeout(function(){
+      $feedback.hide()
+      $('#feedback-text').text('')
+      nextStep(trialObject)
+    }, 1000);
+  };
+
+//feedback (same) for practice
+  var giveSameFeedback = function(trialObject, nextStep) {
+    var $feedback = $('#feedback');
+    $feedback.show()
+    if (trialObject.sameResponse === undefined) {
+      $('#feedback-text').text('TOO SLOW!')
+    } else if (trialObject.sameAccurate === true) {
+      $('#feedback-text').text('CORRECT!')
+    } else if (trialObject.sameAccurate == false) {
+      $('#feedback-text').text('INCORRECT!')
+    }
+    setTimeout(function(){
+      $feedback.hide()
+      nextStep(trialObject)
+    }, 1000);
   };
 
 // show word (colored for classic, bw word1 for wm)
 
-  var displayWord = function(task, trialsLeft) {
+  var displayWord = function(task, trialsLeft, practice) {
     var $word = $('#word');
     var trialObject = { task: task, trialsLeft: trialsLeft};
+    trialObject.practice = practice;
 
     if (trialObject.task === 'wm') {
-      trialObject.trialNum = WM_NUM_TRIALS - trialObject.trialsLeft;
-      trialObject.word1 = WM_TRIAL_ITEMS[trialObject.trialNum][0];
+      if (trialObject.practice) {
+        trialObject.trialNum = PRACTICE_WM_NUM_TRIALS - trialObject.trialsLeft;
+        trialObject.word1 = PRACTICE_WM_TRIAL_ITEMS[trialObject.trialNum][0];
+      } else {
+        trialObject.trialNum = WM_NUM_TRIALS - trialObject.trialsLeft;
+        trialObject.word1 = WM_TRIAL_ITEMS[trialObject.trialNum][0];
+      }
       $('#word-text').text(trialObject.word1)
       $word.show()
       setTimeout(function() {
@@ -132,10 +218,16 @@ $(function(){
     }
 
     if (trialObject.task === 'classic') {
-      trialObject.trialNum = CLASSIC_NUM_TRIALS - trialObject.trialsLeft;
-      trialObject.word = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][0];
+      if (trialObject.practice) {
+        trialObject.trialNum = PRACTICE_CLASSIC_NUM_TRIALS - trialObject.trialsLeft;
+        trialObject.word = PRACTICE_CLASSIC_TRIAL_ITEMS[trialObject.trialNum][0];
+        trialObject.ink = PRACTICE_CLASSIC_TRIAL_ITEMS[trialObject.trialNum][1];
+      } else {
+        trialObject.trialNum = CLASSIC_NUM_TRIALS - trialObject.trialsLeft;
+        trialObject.word = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][0];
+        trialObject.ink = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][1];
+      }
       $('#word-text').text(trialObject.word)
-      trialObject.ink = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][1];
       $word.css('color', trialObject.ink)
       $word.show()
       var displayWordStart = new Date();
@@ -147,8 +239,15 @@ $(function(){
         $(this).off();
         $word.css('color', 'black')
         $word.hide()
+        trialObject.congruent = trialObject.ink === trialObject.word;
         trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
-        interTrial(task, trialObject)
+        if (trialObject.practice) {
+          giveColorFeedback(trialObject, function() {
+            interTrial(trialObject)
+          });
+        } else {
+          interTrial(trialObject)
+        }
       }, CLASSIC_WORD);
     }
 
@@ -156,23 +255,49 @@ $(function(){
 
 // ITI between trials, send to next task/post-task if finished
 
-  var interTrial = function(task, trialObject) {
+  var interTrial = function(trialObject) {
     var $interTrial = $('#intertrial');
     $interTrial.show()
-    if (task === 'wm') {
+    if (trialObject.task === 'wm') {
       var ITI = WM_ITI;
     } else {
       var ITI = CLASSIC_ITI;
     };
     setTimeout(function() {
       $interTrial.hide()
-      saveTrialData(trialObject)
-      if (trialObject.trialsLeft > 1) {
-        displayWord(task, trialObject.trialsLeft - 1)
+      if (!trialObject.practice) saveTrialData(trialObject);
+      if (isBreak(trialObject)) {
+        blockBreak(trialObject)
+      } else if (trialObject.trialsLeft > 1) {
+        displayWord(trialObject.task, trialObject.trialsLeft - 1, trialObject.practice)
+      } else if (trialObject.practice) {
+        startRealTrial(trialObject)
       } else {
         finishTask()
       }
     }, ITI);
+  };
+
+// break between blocks
+
+  var blockBreak = function(trialObject) {
+    var $breakSlide = $('#break-block');
+    $('#stage').hide()
+    $breakSlide.show()
+
+    $('#continue-button').on('click', function() {
+      $breakSlide.hide()
+      $('#stage').show()
+      displayWord(trialObject.task, trialObject.trialsLeft - 1)
+      $(this).off();
+    })
+  };
+
+// check if time for block break
+  var isBreak = function(trialObject) {
+  return trialObject.practice === false &&
+    trialObject.task === 'wm' &&
+    trialObject.trialNum === WM_NUM_TRIALS/NUM_BLOCKS - 1;
   };
 
 // both ISIs for WM task
@@ -207,8 +332,15 @@ $(function(){
     setTimeout(function() {
       $patch.hide()
       $(this).off()
+      trialObject.congruent = trialObject.patch === trialObject.word1;
       trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
-      interStim('probe', trialObject)
+      if (trialObject.practice) {
+        giveColorFeedback(trialObject, function() {
+          interStim('probe', trialObject)
+        });
+      } else {
+        interStim('probe', trialObject)
+      }
     }, WM_PATCH);
   };
 
@@ -217,6 +349,9 @@ $(function(){
   var displayProbe = function(trialObject) {
     var $probe = $('#probe');
     trialObject.word2 = WM_TRIAL_ITEMS[trialObject.trialNum][2];
+
+    var $probeInstruct = $('#probe-instruct');
+    $probeInstruct.show()
     $('#probe-text').text(trialObject.word2)
     $probe.show()
     var displayProbeStart = new Date();
@@ -226,15 +361,21 @@ $(function(){
     });
     setTimeout(function() {
       $(this).off();
+      $probeInstruct.hide()
       $probe.hide()
-      if (trialObject.word1 === trialObject.word2) {
-        trialObject.same = "yes";
+      trialObject.same = trialObject.word1 === trialObject.word2;
+      if (trialObject.same) {
         trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "same") : 'NA';
       } else {
-        trialObject.same = "no";
         trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "diff") : 'NA';
       }
-      interTrial('wm', trialObject)
+      if (trialObject.practice) {
+        giveSameFeedback(trialObject, function() {
+          interTrial(trialObject)
+        });
+      } else {
+        interTrial(trialObject)
+      }
     }, WM_PROBE);
   };
 
@@ -265,9 +406,10 @@ $(function(){
 // add trial object to output object
 
   var saveTrialData = function(trialObject) {
-    console.log('pushing: ', trialObject)
     experimentData.trialData.push(trialObject)
   };
+
+// fin (or, task2!)
 
   var finishTask = function() {
       numTasksRun++;
@@ -276,7 +418,7 @@ $(function(){
         initTask(TASK_ORDER[1])
       } else if (numTasksRun === 2) {
         $('#finished').show()
-        console.log(experimentData)
+        // submit to mturk
       }
   };
 

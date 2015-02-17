@@ -69,8 +69,38 @@ for (i in 1:4) {
   }
 cat("var wm_items =")
 cat(toJSON(as.data.frame(t(wm_items))))
+cat(";\n\n")
+
+
+#write.table(wm_items, file = 'wm_items.csv', row.names = F, col.names = F)
+
+# make practice wm stroop items
+
+practice_wm_num_trials = 12
+practice_wm_num_stim_types = 3
+practice_wm_items = rbind(c('red', 'red', 'blue'),
+                     c('red', 'green', 'red'),
+                     c('red', 'yellow', 'green'),
+                     c('blue', 'blue', 'yellow'),
+                     c('blue', 'yellow', 'blue'),
+                     c('blue', 'red', 'red'),
+                     c('green', 'green', 'yellow'),
+                     c('green', 'red', 'green'),
+                     c('green', 'blue', 'blue'),
+                     c('yellow', 'yellow', 'red'),
+                     c('yellow', 'blue', 'yellow'),
+                     c('yellow', 'green', 'green'))
+practice_classic_items = practice_wm_items[,1:2]
+                     
+                     
+
+cat("var practice_wm_items =")
+cat(toJSON(as.data.frame(t(practice_wm_items))))
+cat(";\n\n")
+
+cat("var practice_classic_items =")
+cat(toJSON(as.data.frame(t(practice_classic_items))))
 cat(";")
 sink()
 
-#write.table(wm_items, file = 'wm_items.csv', row.names = F, col.names = F)
 

@@ -7,7 +7,7 @@ body {
 	line-height: 20px;
 }
 
- 
+
 .slide {
 	width: 95%;
 	height: 95%;
@@ -48,7 +48,6 @@ button[disabled] {
 }
 /* change below for experiment */
 
-/* do i need this?? it's just an image. does text-align center images? */
 .instructions {
   text-align: center;
   width: 600px;
@@ -58,15 +57,6 @@ button[disabled] {
   margin-right: auto;
 }
 
-/* change based on key types; ID selector */
-#odd-key, #even-key {
-  background-color: #e3e3e3;
-  padding: 2px;
-  border: 1px outset #cccccc;
-  font-family: Courier New;
-  font-weight: bold;
-  font-size: 15px;
-}
 
 /* class selector */
 .block-text {
@@ -74,16 +64,6 @@ button[disabled] {
   text-align: justify;
   margin: 0 auto;
   margin-bottom: 1em;
-}
-
-/* will change to word*/
-#number {
-  font-size: 42px;
-  font-family: Arial, sans-serif;
-  margin: 0 auto;
-  text-align: center;
-  width: 100px;
-  margin-top: 100px;
 }
 
 .stim {
@@ -108,7 +88,7 @@ button[disabled] {
 	width: 200px;
 	margin-top: -40;
 	margin-left: -100;
-}	
+}
 
 #red-patch {
 	background-color: #E10000;
@@ -119,9 +99,26 @@ button[disabled] {
 }
 
 #blue-patch {
-	background-color: #0000FF;	
+	background-color: #0000FF;
 }
 
 #yellow-patch {
 	background-color: #E1D728;
+}
+
+#probe-instruct {
+  color: white;
+}
+
+#probe-text {
+  color: black;
+}
+
+#break-block {
+  color: white;
+  line-height: 1;
+}
+
+#feedback-text {
+  color: white;
 }
