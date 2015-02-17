@@ -1,37 +1,62 @@
 $(function(){
-    
-  
-  var CLASSIC_NUM_TRIALS = 4; //96; --> dividing in half, 49 -> 48 to be divis by 4
-  var WM_NUM_TRIALS = 10; //120; --> dividing in half, 60
+
+  var CLASSIC_NUM_TRIALS = 2; //96; --> dividing in half, 49 -> 48 to be divis by 4
+  var WM_NUM_TRIALS = 2; //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
-  
-  var TASK_ORDER = _(['classic', 'wm']).shuffle(); 
-  var num_tasks_run = 0;
-  
-  CLASSIC_TRIAL_ITEMS = _(classic_items).shuffle();
-  WM_TRIAL_ITEMS = _(wm_items).shuffle();
-  
+
+  var TASK_ORDER = _(['classic', 'wm']).shuffle();
+  var numTasksRun = 0;
+
+  var CLASSIC_TRIAL_ITEMS = _(classic_items).shuffle();
+  var WM_TRIAL_ITEMS = _(wm_items).shuffle();
+
+  var COLOR_RESPONSE_MAPPINGS = {
+    'a': 'red',
+    's': 'blue',
+    'j': 'green',
+    'k': 'yellow'
+  };
+
+  var SAME_RESPONSE_MAPPINGS = {'0': 'diff', '1': 'same'};
+
+// timing
+  var ITI = 1000;
+  var WM_ISI = 1000;
+  var WM_ISI2 = 2000;
+  var WM_WORD1 = 1000; // <temp 500;
+  var WM_PATCH = 500;
+  var WM_PROBE = 3000;
+  var CLASSIC_WORD = 1000; // <temp 500;
+
+  var experimentData = {
+    subID: 0,
+    taskOrder: TASK_ORDER,
+    classicTrialOrder: CLASSIC_TRIAL_ITEMS,
+    wmTrialOrder: WM_TRIAL_ITEMS,
+    trials: []
+  };
+
   var initTask = function(task) {
-    
+
     var $instructSlide = $('#init-task');
     $('#classic-instruct').hide()
     $('#wm-instruct').hide()
-    
+
     $instructSlide.show()
-    
+
     if (task === 'classic') {
       $('#classic-instruct').show()
     } else if (task === 'wm') {
       $('#wm-instruct').show()
     }
-  
-    $('#start-button').on("click", function() {
+
+    $('#start-button').on('click', function() {
       $instructSlide.hide()
-      startTrials(task); 
+      startTrials(task);
       $(this).off(); // to avoid restarting task 1 during task 2
     })
-  }
-  
+  };
+
   var startTrials = function(task) {
     $('.stim').hide()
     $('#stage').show()
@@ -40,115 +65,165 @@ $(function(){
     } else if (task === 'wm') {
       runWM()
     }
-  }
-  
+  };
+
   var displayWord = function(task, trialsLeft) {
     var $word = $('#word');
-    
-    if (task === 'wm') {
-      $('#word-text').text(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][0])
+    var trialObject = { task: task, trialsLeft: trialsLeft};
+
+    if (trialObject.task === 'wm') {
+      trialObject.trialNum = WM_NUM_TRIALS - trialObject.trialsLeft;
+      trialObject.word1 = WM_TRIAL_ITEMS[trialObject.trialNum][0];
+      $('#word-text').text(trialObject.word1)
       $word.show()
-      debugger
       setTimeout(function() {
         $word.hide()
-        interStim('patch', trialsLeft) 
-      }, 500);
+        interStim('patch', trialObject)
+      }, WM_WORD1);
     }
-    
-    if (task === 'classic') {
-      $('#word-text').text(CLASSIC_TRIAL_ITEMS[CLASSIC_NUM_TRIALS - trialsLeft][1])
-      $word.css('color', CLASSIC_TRIAL_ITEMS[CLASSIC_NUM_TRIALS-trialsLeft][0])
+
+    if (trialObject.task === 'classic') {
+      trialObject.trialNum = CLASSIC_NUM_TRIALS - trialObject.trialsLeft;
+      trialObject.word = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][0];
+      $('#word-text').text(trialObject.word)
+      trialObject.ink = CLASSIC_TRIAL_ITEMS[trialObject.trialNum][1];
+      $word.css('color', trialObject.ink)
       $word.show()
-      // new date to start RT?
+      var displayWordStart = new Date();
+      $(window).on('keypress', function(event) {
+        handleColorResponse(event, displayWordStart, trialObject)
+        $(this).off();
+      });
       setTimeout(function() {
+        $(this).off();
+        $word.css('color', 'black')
         $word.hide()
-        interTrial(task, trialsLeft)
-      }, 500);
+        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
+        interTrial(task, trialObject)
+      }, CLASSIC_WORD);
     }
-    
-   
-    
-  }
-  
-  var interTrial = function(task, trialsLeft) {
+
+  };
+
+  var interTrial = function(task, trialObject) {
     var $interTrial = $('#intertrial');
     $interTrial.show()
     setTimeout(function() {
       $interTrial.hide()
-      if (trialsLeft > 1) {
-        displayWord(task, trialsLeft - 1)
+      saveTrialData(trialObject)
+      if (trialObject.trialsLeft > 1) {
+        displayWord(task, trialObject.trialsLeft - 1)
       } else {
         finishTask()
       }
-    }, 1000);
-  }
-  
-  // WM stroop task only
-  var interStim = function(next, trialsLeft) {
-    // between word and patch - 2000ms, or patch and probe - 1000ms
+    }, ITI);
+  };
+
+  var interStim = function(next, trialObject) {
     var $fix = $('#interstim');
     $fix.show()
     if (next === 'patch') {
       setTimeout(function() {
         $fix.hide()
-        displayPatch(trialsLeft)
-      }, 2000);
+        displayPatch(trialObject)
+      }, WM_ISI2);
     } else if (next === 'probe') {
       setTimeout(function() {
         $fix.hide()
-        //interTrial('wm', trialsLeft) //temp
-        displayProbe(trialsLeft)
-      }, 1000);
+        displayProbe(trialObject)
+      }, WM_ISI);
     }
-   
-  }
+  };
 
-  
-  var displayPatch = function(trialsLeft) {
-    var $patch = $('#'.concat(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][1],"-patch"));
+
+  var displayPatch = function(trialObject) {
+    trialObject.patch = WM_TRIAL_ITEMS[trialObject.trialNum][1];
+    var $patch = $('#'.concat(trialObject.patch,"-patch"));
     $patch.show()
-    // new date for RT?
+    var displayPatchStart = new Date();
+    $(window).on('keypress', function(event) {
+      handleColorResponse(event, displayPatchStart, trialObject)
+      $(this).off();
+    });
     setTimeout(function() {
       $patch.hide()
-      interStim('probe', trialsLeft)
-    }, 500);
-  }
-  
-  var displayProbe = function(trialsLeft) {
+      $(this).off()
+      trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
+      interStim('probe', trialObject)
+    }, WM_PATCH);
+  };
+
+  var displayProbe = function(trialObject) {
     var $probe = $('#probe');
-    $('#probe-text').text(WM_TRIAL_ITEMS[WM_NUM_TRIALS-trialsLeft][2])
+    trialObject.word2 = WM_TRIAL_ITEMS[trialObject.trialNum][2];
+    $('#probe-text').text(trialObject.word2)
     $probe.show()
-    // new date for RT?
-    // capture response, can call saveTrialData now to calc accuracy, RTs, and record answers
+    var displayProbeStart = new Date();
+    $(window).on('keypress', function(event) {
+      handleSameResponse(event, displayProbeStart, trialObject)
+      $(this).off();
+    });
     setTimeout(function() {
+      $(this).off();
       $probe.hide()
-      interTrial('wm', trialsLeft) 
-    }, 3000);
-  }
-  
-  var saveTrialData = function() {
-    // calc accuracy, RT; record answers; save into data struc
-  }
-  
+      if (trialObject.word1 === trialObject.word2) {
+        trialObject.same = "yes";
+        trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "same") : 'NA';
+      } else {
+        trialObject.same = "no";
+        trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "diff") : 'NA';
+      }
+      interTrial('wm', trialObject)
+    }, WM_PROBE);
+  };
+
+  var mapColorResponse = function(keyCode) {
+    var responseKey = String.fromCharCode(keyCode);
+    return COLOR_RESPONSE_MAPPINGS[responseKey];
+  };
+
+  var mapSameResponse = function(keyCode) {
+    var responseKey = String.fromCharCode(keyCode);
+    return SAME_RESPONSE_MAPPINGS[responseKey];
+  };
+
+  var handleColorResponse = function(event, displayStart, trialObject) {
+    trialObject.colorResponse = mapColorResponse(event.keyCode);
+    var responseTime = new Date();
+    trialObject.colorRT = responseTime - displayStart;
+  };
+
+  var handleSameResponse = function(event, displayStart, trialObject) {
+    trialObject.sameResponse = mapSameResponse(event.keyCode);
+    var responseTime = new Date();
+    trialObject.sameRT = responseTime - displayStart;
+  };
+
+  var saveTrialData = function(trialObject) {
+    console.log('pushing: ', trialObject)
+    experimentData.trials.push(trialObject)
+  };
+
   var runClassic = function() {
     displayWord('classic', CLASSIC_NUM_TRIALS)
-  }
-  
+  };
+
   var runWM = function() {
     displayWord('wm', WM_NUM_TRIALS)
-  }
-  
+  };
+
   var finishTask = function() {
-      num_tasks_run++;
+      numTasksRun++;
       $("#stage").hide()
-      if (num_tasks_run === 1) {
+      if (numTasksRun === 1) {
         initTask(TASK_ORDER[1])
-      } else if (num_tasks_run === 2) {
-        $('#finished').show() 
+      } else if (numTasksRun === 2) {
+        $('#finished').show()
+        console.log(experimentData)
       }
-  }
+  };
 
 
-  initTask(TASK_ORDER[0]); 
-  
+  initTask(TASK_ORDER[0]);
+
 });
