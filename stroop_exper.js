@@ -3,7 +3,7 @@ $(function(){
 //set num trials and blocks
 
   var CLASSIC_NUM_TRIALS = 48; //96; --> dividing in half, 49 -> 48 to be divis by 4
-  var WM_NUM_TRIALS = 472 //120; --> dividing in half, 60 -> 72 to work with stim balancing
+  var WM_NUM_TRIALS = 72 //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
 
   var PRACTICE_CLASSIC_NUM_TRIALS = 12; //12
