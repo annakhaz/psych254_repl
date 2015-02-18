@@ -2,12 +2,12 @@ $(function(){
 
 //set num trials and blocks
 
-  var CLASSIC_NUM_TRIALS = 4; //96; --> dividing in half, 49 -> 48 to be divis by 4
-  var WM_NUM_TRIALS = 4; //120; --> dividing in half, 60 -> 72 to work with stim balancing
+  var CLASSIC_NUM_TRIALS = 48; //96; --> dividing in half, 49 -> 48 to be divis by 4
+  var WM_NUM_TRIALS = 472 //120; --> dividing in half, 60 -> 72 to work with stim balancing
   var NUM_BLOCKS = 2;
 
-  var PRACTICE_CLASSIC_NUM_TRIALS = 1; //12
-  var PRACTICE_WM_NUM_TRIALS = 1; //12
+  var PRACTICE_CLASSIC_NUM_TRIALS = 12; //12
+  var PRACTICE_WM_NUM_TRIALS = 12; //12
 
 //set up task order (classic vs wm stroop first)
 
