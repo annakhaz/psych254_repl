@@ -1,7 +1,6 @@
 <html>
 <head>
-	<title>WM Stroop Experiment</title>
-
+	<title>Memory and Color-Naming Experiment</title>
 
 	<script src="jquery-1.11.2.min.js"></script>
   <script src="underscore.js"></script>
@@ -11,7 +10,18 @@
 </head>
 <body>
 
-
+<div class="slide" id="welcome">
+<h1>Memory and Color-Naming Tasks</h1>
+<p>Thank you for your interest in our experiment. Your input is valuable and we greatly appreciate your effort. This experiment should take you around 10-12 minutes.
+  <br><br>You will be asked to do two related tasks. In the <u>color-naming task</u>, you will see a color word and need to identify what color ink the word is printed in.
+  <br><br>In the <u>memory and color-naming</u> task, you will first see a color word in black ink. You will then see a colored rectangle, and you will need to indicate what color it is. Finally you will see another color word in black ink, and you will need to indicate whether this word is the same as the first word you saw.
+  <br><br>Be sure to pay attention and respond as quickly as you can. We reserve the right to reject HITs that do not pass criteria for conscientious responding.
+  <br><br>Please avoid pressing any buttons other than the ones you are instructed to press. If buttons or pages stop responding, please quit the study and contact the experimenter imediately.
+  <br><br>You may only complete this HIT once.
+  <br><br>Click the button bellow to begin.
+  <br></p>
+	<button id="begin-exper-button" type="button">BEGIN</button>
+</div>
 <div class="slide" id="init-task">
 <!-- so are we not counterbalancing button presses? -->
     <div class="instructions" id="classic-instruct">

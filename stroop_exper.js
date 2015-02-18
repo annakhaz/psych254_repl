@@ -47,16 +47,18 @@ $(function(){
 // output
 
   var experimentData = {
-    subID: 0,
-    taskOrder: TASK_ORDER,
-    classicTrialOrder: CLASSIC_TRIAL_ITEMS,
-    wmTrialOrder: WM_TRIAL_ITEMS,
-    numBlocks: NUM_BLOCKS,
-    trialData: [],
-    practiceClassicTrialOrder: PRACTICE_CLASSIC_TRIAL_ITEMS,
-    practiceWmTrialOrder: PRACTICE_WM_TRIAL_ITEMS,
-    practiceData: []
+    trialData: []
   };
+
+  var showWelcome = function() {
+    var $welcomeSlide = $('#welcome');
+    $welcomeSlide.show()
+    $('#begin-exper-button').on('click', function() {
+      $welcomeSlide.hide()
+      initTask(TASK_ORDER[0]);
+      $(this).off(); // to avoid restarting task 1 during task 2
+    })
+  }
 
 //start! show instructions and wait for click
 
@@ -421,13 +423,12 @@ $(function(){
       } else if (numTasksRun === 2) {
         $('#finished').show()
         setTimeout(function() {
-          turk.submit(experimentData)
+          turk.submit(experimentData, true)
         }, 1500);
       }
   };
 
 // here we go!
-
-  initTask(TASK_ORDER[0]);
+  showWelcome();
 
 });
