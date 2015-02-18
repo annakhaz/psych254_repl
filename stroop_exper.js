@@ -53,17 +53,18 @@ $(function(){
   var showWelcome = function() {
     var $welcomeSlide = $('#welcome');
     $welcomeSlide.show()
-    $('#begin-exper-button').on('click', function() {
-      $welcomeSlide.hide()
-      initTask(TASK_ORDER[0]);
+    if (turk.previewMode == false) {
+      $('#begin-exper-button').on('click', function() {
+        $welcomeSlide.hide()
+        initTask(TASK_ORDER[0]);
       $(this).off(); // to avoid restarting task 1 during task 2
-    })
-  }
+    });
+  };
+};
 
 //start! show instructions and wait for click
 
   var initTask = function(task) {
-
     var $instructSlide = $('#init-task');
     $('#classic-instruct').hide()
     $('#wm-instruct').hide()
