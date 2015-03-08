@@ -313,7 +313,7 @@ $(function(){
     $('#continue-button').on('click', function() {
       $breakSlide.hide()
       $('#stage').show()
-      displayWord(trialObject.task, trialObject.trialsLeft - 1)
+      displayWord(trialObject.task, trialObject.trialsLeft - 1, false)
       $(this).off();
     })
   };
