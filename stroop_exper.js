@@ -435,11 +435,11 @@ $(function(){
     var responseTime = new Date();
     if (isi) {
       if (trialObject.colorResponse === 'NA') { // if no response already given
-        if (resp) {trialObject.colorResponse = resp};
+        trialObject.colorResponse = resp;
         trialObject.isicolorRT = responseTime - displayStart;
       }
     } else {
-      if (resp) {trialObject.colorResponse = resp};
+      trialObject.colorResponse = resp;
       trialObject.colorRT = responseTime - displayStart;
       trialObject.isicolorRT = 0;
     }
@@ -450,11 +450,11 @@ $(function(){
     var responseTime = new Date();
     if (isi) {
       if (trialObject.sameResponse === 'NA') { // if no response already given
-        if (resp) {trialObject.sameResponse = resp};
+        trialObject.sameResponse = resp;
         trialObject.isisameRT = responseTime - displayStart;
       }
     } else {
-      if (resp) {trialObject.sameResponse = resp};
+      trialObject.sameResponse = resp;
       trialObject.sameRT = responseTime - displayStart;
       trialObject.isisameRT = 0;
     }
