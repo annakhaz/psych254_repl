@@ -289,6 +289,7 @@ $(function(){
     };
 
     setTimeout(function() {
+      $(this).off();
       $interTrial.hide()
       saveTrialData(trialObject);
       if (isBreak(trialObject)) {
@@ -348,6 +349,7 @@ $(function(){
 
 
       setTimeout(function() {
+        $(this).off();
         $fix.hide()
         displayProbe(trialObject)
       }, WM_ISI2);
