@@ -167,8 +167,7 @@ $(function(){
   var giveColorFeedback = function(trialObject, nextStep) {
     var $feedback = $('#feedback');
     $feedback.show()
-    debugger
-    if (trialObject.colorResponse === undefined) {
+    if (trialObject.colorResponse === 'NA') {
       $('#feedback-text').text('TOO SLOW!')
     } else if (trialObject.colorAccurate === true) {
       $('#feedback-text').text('CORRECT!')
@@ -186,7 +185,7 @@ $(function(){
   var giveSameFeedback = function(trialObject, nextStep) {
     var $feedback = $('#feedback');
     $feedback.show()
-    if (trialObject.sameResponse === undefined) {
+    if (trialObject.sameResponse === 'NA') {
       $('#feedback-text').text('TOO SLOW!')
     } else if (trialObject.sameAccurate === true) {
       $('#feedback-text').text('CORRECT!')
@@ -236,6 +235,8 @@ $(function(){
       $word.css('color', trialObject.ink)
       $word.show()
       var displayWordStart = new Date();
+      trialObject.colorResponse = 'NA';
+      trialObject.colorRT = 0;
       $(window).on('keypress', function(event) {
         handleColorResponse(event, displayWordStart, trialObject)
         $(this).off();
@@ -244,9 +245,8 @@ $(function(){
         $(this).off();
         $word.css('color', 'black')
         $word.hide()
-        trialObject.congruent = trialObject.ink === trialObject.word;
-        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
         if (trialObject.practice) {
+          trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
           giveColorFeedback(trialObject, function() {
             interTrial(trialObject)
           });
@@ -263,14 +263,34 @@ $(function(){
   var interTrial = function(trialObject) {
     var $interTrial = $('#intertrial');
     $interTrial.show()
+    var isiStart = new Date();
+
     if (trialObject.task === 'wm') {
       var ITI = WM_ITI;
-    } else {
+      trialObject.isisameRT = 0;
+      $(window).on('keypress', function(event) {
+        handleSameResponse(event, isiStart, trialObject, isi = true)
+        $(this).off();
+      });
+        if (trialObject.same) {
+          trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "same") : 'NA';
+        } else {
+          trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "diff") : 'NA';
+        }
+      } else {
       var ITI = CLASSIC_ITI;
+      trialObject.isicolorRT = 0;
+      $(window).on('keypress', function(event) {
+        handleColorResponse(event, isiStart, trialObject, isi = true)
+        $(this).off();
+        trialObject.congruent = trialObject.ink === trialObject.word;
+        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
+      });
     };
+
     setTimeout(function() {
       $interTrial.hide()
-      if (!trialObject.practice) saveTrialData(trialObject);
+      saveTrialData(trialObject);
       if (isBreak(trialObject)) {
         blockBreak(trialObject)
       } else if (trialObject.trialsLeft > 1) {
@@ -310,12 +330,22 @@ $(function(){
   var interStim = function(next, trialObject) {
     var $fix = $('#interstim');
     $fix.show()
+
     if (next === 'patch') {
       setTimeout(function() {
         $fix.hide()
         displayPatch(trialObject)
       }, WM_ISI1);
     } else if (next === 'probe') {
+      var isiStart = new Date();
+      trialObject.isicolorRT = 0;
+      $(window).on('keypress', function(event) {
+        handleColorResponse(event, isiStart, trialObject, isi = true)
+        $(this).off();
+        trialObject.congruent = trialObject.patch === trialObject.word1;
+        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
+      });
+
       setTimeout(function() {
         $fix.hide()
         displayProbe(trialObject)
@@ -330,6 +360,8 @@ $(function(){
     var $patch = $('#'.concat(trialObject.patch,"-patch"));
     $patch.show()
     var displayPatchStart = new Date();
+    trialObject.colorRT = 0;
+    trialObject.colorResponse = 'NA';
     $(window).on('keypress', function(event) {
       handleColorResponse(event, displayPatchStart, trialObject)
       $(this).off();
@@ -337,9 +369,8 @@ $(function(){
     setTimeout(function() {
       $patch.hide()
       $(this).off()
-      trialObject.congruent = trialObject.patch === trialObject.word1;
-      trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
       if (trialObject.practice) {
+        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
         giveColorFeedback(trialObject, function() {
           interStim('probe', trialObject)
         });
@@ -360,6 +391,8 @@ $(function(){
     $('#probe-text').text(trialObject.word2)
     $probe.show()
     var displayProbeStart = new Date();
+    trialObject.sameRT = 0;
+    trialObject.sameResponse = 'NA';
     $(window).on('keypress', function(event) {
       handleSameResponse(event, displayProbeStart, trialObject)
       $(this).off();
@@ -369,12 +402,12 @@ $(function(){
       $probeInstruct.hide()
       $probe.hide()
       trialObject.same = trialObject.word1 === trialObject.word2;
-      if (trialObject.same) {
-        trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "same") : 'NA';
-      } else {
-        trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "diff") : 'NA';
-      }
       if (trialObject.practice) {
+        if (trialObject.same) {
+          trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "same") : 'NA';
+        } else {
+          trialObject.sameAccurate = trialObject.sameResponse ? (trialObject.sameResponse === "diff") : 'NA';
+        }
         giveSameFeedback(trialObject, function() {
           interTrial(trialObject)
         });
@@ -396,16 +429,34 @@ $(function(){
     return SAME_RESPONSE_MAPPINGS[responseKey];
   };
 
-  var handleColorResponse = function(event, displayStart, trialObject) {
-    trialObject.colorResponse = mapColorResponse(event.keyCode);
+  var handleColorResponse = function(event, displayStart, trialObject, isi) {
+    resp = mapColorResponse(event.keyCode);
     var responseTime = new Date();
-    trialObject.colorRT = responseTime - displayStart;
+    if (isi) {
+      if (trialObject.colorResponse === 'NA') { // if no response already given
+        if (resp) {trialObject.colorResponse = resp};
+        trialObject.isicolorRT = responseTime - displayStart;
+      }
+    } else {
+      if (resp) {trialObject.colorResponse = resp};
+      trialObject.colorRT = responseTime - displayStart;
+      trialObject.isicolorRT = 0;
+    }
   };
 
-  var handleSameResponse = function(event, displayStart, trialObject) {
-    trialObject.sameResponse = mapSameResponse(event.keyCode);
+  var handleSameResponse = function(event, displayStart, trialObject, isi) {
+    resp = mapSameResponse(event.keyCode);
     var responseTime = new Date();
-    trialObject.sameRT = responseTime - displayStart;
+    if (isi) {
+      if (trialObject.sameResponse === 'NA') { // if no response already given
+        if (resp) {trialObject.sameResponse = resp};
+        trialObject.isisameRT = responseTime - displayStart;
+      }
+    } else {
+      if (resp) {trialObject.sameResponse = resp};
+      trialObject.sameRT = responseTime - displayStart;
+      trialObject.isisameRT = 0;
+    }
   };
 
 // add trial object to output object
