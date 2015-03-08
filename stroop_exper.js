@@ -189,7 +189,7 @@ $(function(){
       $('#feedback-text').text('TOO SLOW!')
     } else if (trialObject.sameAccurate === true) {
       $('#feedback-text').text('CORRECT!')
-    } else if (trialObject.sameAccurate == false) {
+    } else if (trialObject.sameAccurate === false) {
       $('#feedback-text').text('INCORRECT!')
     }
     setTimeout(function(){
@@ -283,9 +283,9 @@ $(function(){
       $(window).on('keypress', function(event) {
         handleColorResponse(event, isiStart, trialObject, isi = true)
         $(this).off();
-        trialObject.congruent = trialObject.ink === trialObject.word;
-        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
       });
+      trialObject.congruent = trialObject.ink === trialObject.word;
+      trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.ink === trialObject.colorResponse) : 'NA';
     };
 
     setTimeout(function() {
@@ -342,9 +342,10 @@ $(function(){
       $(window).on('keypress', function(event) {
         handleColorResponse(event, isiStart, trialObject, isi = true)
         $(this).off();
-        trialObject.congruent = trialObject.patch === trialObject.word1;
-        trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
       });
+      trialObject.congruent = trialObject.patch === trialObject.word1;
+      trialObject.colorAccurate = trialObject.colorResponse ? (trialObject.patch === trialObject.colorResponse) : 'NA';
+
 
       setTimeout(function() {
         $fix.hide()
