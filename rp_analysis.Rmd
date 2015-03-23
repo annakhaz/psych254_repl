@@ -1,0 +1,330 @@
+ ---
+title: "RP Analysis"
+author: "Anna Khazenzon"
+date: "March 10, 2015"
+output: html_document
+---
+
+``` {r load and prep data}
+library(scales)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# remove practice trials
+d <- read.csv("rp_final_data.csv")
+p_prac <- d %>% filter(practice == TRUE)
+d <-  d %>% filter(practice == FALSE)
+
+#select relevant columns
+d <- d %>% select(subid, task, trialNum, word1, patch, word2, same, sameResponse, sameRT, isisameRT, sameAccurate, congruent, colorResponse, colorRT, isicolorRT, colorAccurate, word, ink)
+
+# get rid of NA RTs
+d <- d %>% 
+  mutate(sameRT = ifelse(is.na(sameRT), 0, sameRT)) %>%
+  mutate(isisameRT = ifelse(is.na(isisameRT), 0, colorRT))
+
+#code cb order, total RTs
+d <- d %>%
+  group_by(subid) %>%
+  mutate(cb_order = ifelse(task[1] == 'classic', 1, 2)) %>%
+  mutate(total_color_RT = ifelse(isicolorRT > colorRT, 500 + isicolorRT, colorRT),
+         total_same_RT = ifelse(sameRT == 0 & isisameRT > 0, 3000 + isisameRT, sameRT))
+
+# rename factor levels
+d$cb_order <- factor(d$cb_order, levels = c(1,2), labels = c("Order 1", "Order 2"))
+d$congruent <- factor(d$congruent, levels = c(TRUE, FALSE), labels = c("Congruent", "Incongruent"))
+
+# fix color accuracy variable - true if either classic or wm color response correct
+d <- d %>% 
+  mutate(colorAccReal = ifelse(patch == colorResponse, TRUE, ifelse(patch != colorResponse, FALSE, NA))) %>%
+  mutate(colorAccReal = ifelse(!is.na(colorAccReal), colorAccReal, ifelse(ink == colorResponse, TRUE, ifelse(ink != colorResponse, FALSE, NA))))
+
+```
+
+``` {r remove subjects with more than 2/3 NAs, les than 50% accuracy}
+
+#120 trials per subj (nonpractice)
+na_counts <- d %>%
+  group_by(subid) %>%
+  filter(is.na(colorResponse)) %>%
+  summarise(NA_count = n())
+
+acc_amt <- d %>%
+  group_by(subid) %>%
+  filter(colorAccReal == TRUE) %>%
+  summarise(acc_count = n())
+
+#chance level = .25 - none excluded for this
+ok_na_subs <- na_counts$subid[na_counts$NA_count < 40] 
+ok_acc_subs <- acc_amt$subid[acc_amt$acc_count > 30]
+
+d <- d %>%
+  filter(subid %in% ok_subs)
+
+```
+
+``` {r reformat df and make df of accurate trials}
+d <- d %>%
+  select(subid, cb_order, task, congruent, sameAccurate, total_same_RT, colorAccReal, total_color_RT)
+
+d_corr <- d %>% filter(colorAccReal & (sameAccurate | is.na(sameAccurate)))
+
+length(unique(d_corr$subid)) #nsubs = 32
+```
+
+``` {r hists}
+hist(d_corr$total_color_RT, 50)
+
+m <- mean(d_corr$total_color_RT)
+stdev <- sd(d_corr$total_color_RT)
+
+# remove outliers and 0 RTs
+d_corr <- d_corr %>% 
+  filter(total_color_RT < m + stdev*3) %>%
+  filter(total_color_RT > m - stdev*3) %>%
+  filter(total_color_RT > 0)
+  
+hist(d_corr$total_color_RT)
+```
+
+``` {r calc avgs within}
+
+by_sub <- d_corr %>%
+  group_by(subid, task, congruent) %>%
+  summarise(count = n(), same = mean(total_same_RT), color = mean(total_color_RT), se = sem(total_color_RT))
+
+```
+
+``` {r calc avgs between}
+across_subs <- by_sub %>%
+  group_by(task, congruent) %>%
+  summarise(color_across = mean(color), se = sem(color))
+```
+
+``` {r visualize colorRT}
+# take a quick look at the finding of interest
+
+limits <- aes(ymax = color_across + se, ymin = color_across - se)
+
+ggplot(across_subs, aes(x=congruent, y=color_across, fill=congruent)) + 
+  geom_bar(stat="identity") + 
+  facet_grid(~task) + 
+  theme_classic() + 
+  labs(x = "Trial Type", y = "Color Naming RT (ms)", title = "Color Naming RT") +
+  geom_errorbar(limits, position=position_dodge(width=.9), width=0.25) +
+  theme(text = element_text(size=17)) +
+  theme(legend.position="none")
+```
+
+``` {r run RT anova}
+sub_d <- d_corr %>%
+  group_by(subid, task, congruent, cb_order) %>%
+  summarise(count = n(), same = mean(total_same_RT), color = mean(total_color_RT), se = sem(total_color_RT))
+
+rs <- aov(color ~ task * cb_order * congruent + Error(factor(subid)/(task*congruent)) + cb_order, sub_d)
+summary(rs)
+
+# task:cb_order marginal, congruent highly significant, task:congruent significant, marginal task:cb_order:congruent
+
+congruency_eta2 <- (102000/(102000 + 4676 + 56494))
+task_congruency_eta2 <- (26800/(26800 + 11716 + 84361))
+task_cb_eta2 <- (53151/(53151 + 13744 + 406637))
+task_cb_congruency_eta2 <- (11716/(26800 + 11716 + 84361))
+```
+
+``` {r visualize RT anova}
+# boxplot
+boxplot(color ~ task * cb_order * congruent, sub_d, xaxt = "n", xlab = "")
+#par(mar = c(6, 4, 4, 2) + 0.1)
+axis(1, labels = FALSE)
+labels <- paste(c("Classic-Incong-1", "WM-Incong-1", "Classic-Incong-2", "WM-Incong-2","Classic-Cong-1", "WM-Cong-1", "Classic-Cong-2", "WM-Cong-2"), sep = " ")
+text(1:8, par("usr")[3] - 0.25, srt = 45, adj = 1.1,
+     labels = labels, xpd = TRUE)
+mtext(1, text = "X Axis Label", line = 6)
+
+# bar graph
+limits <- aes(ymax = color_across + se, ymin = color_across - se)
+
+across_sub_avgs <- sub_d %>%
+  group_by(task, congruent, cb_order) %>%
+  summarise(color_across = mean(color), se = sem(color))
+
+ggplot(across_sub_avgs, aes(x = congruent, y = color_across, fill = cb_order)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_grid(~task) +
+  labs(x = "Trial Type", y = "RT(ms)") +
+  geom_errorbar(limits, position=position_dodge(width=.9), width=0.25) +
+  labs(title = "Color Naming Reaction Times") + 
+  theme(text = element_text(size=20)) +
+  theme_bw()
+```
+
+``` {r for table 1}
+across_sub_avgs_t1 <- sub_d %>%
+  group_by(task, congruent) %>%
+  summarise(color_across = mean(color), sd = sd(color))
+```
+
+``` {r post-hoc RT plots/tests}
+
+# congruency
+congruent_by_subs <- d_corr %>%
+  group_by(subid, congruent) %>%
+  summarise(count = n(), color = mean(total_color_RT), se = sem(total_color_RT))
+
+congruent_avgs <- congruent_by_subs %>%
+  group_by(congruent) %>%
+  summarise(color_across = mean(color), se = sem(color))
+
+t.test(d_corr$total_color_RT[d_corr$congruent == 'Congruent'], d_corr$total_color_RT[d_corr$congruent == 'Incongruent'])
+
+limits <- aes(ymax = color_across + se, ymin = color_across - se)
+
+ggplot(congruent_avgs, aes(x = congruent, y = color_across, fill = congruent)) + 
+  geom_bar(stat="identity") + 
+  geom_errorbar(limits, position = position_dodge(width = .9), width = 0.25) + 
+  scale_y_continuous(limits = c(400, 620), oob = rescale_none)
+
+# task/cb order marginal interaction
+task_cb_by_subs <- d_corr %>%
+  group_by(subid, task, cb_order) %>%
+  summarise(count = n(), color = mean(total_color_RT), se = sem(total_color_RT))
+
+task_cb_avgs <- task_cb_by_subs %>%
+  group_by(task, cb_order) %>%
+  summarise(color_across = mean(color), se = sem(color))
+
+with(task_cb_avgs, 
+     {interaction.plot(x.factor = task, trace.factor = cb_order, response = color_across, fun = function(x) mean(x, na.rm = TRUE))
+      })
+
+```
+
+``` {r accuracy anova}
+sub_d_acc <- d %>%
+  filter(!is.na(colorAccReal)) %>%
+  mutate(colorAccReal = ifelse(colorAccReal, 'corr', 'incorr')) %>%
+  group_by(subid, task, congruent, cb_order, colorAccReal) %>%
+  summarise(count = n()) %>%
+  spread(colorAccReal, count) %>%
+  mutate(acc = corr/(corr+incorr))
+
+sub_d_acc <- sub_d_acc %>%
+  filter(!is.na(acc))
+
+rs <- aov(acc ~ (task * cb_order * congruent) + Error(factor(subid)/(task*congruent)) + cb_order, sub_d_acc)
+summary(rs)
+
+acc_avgs <- sub_d_acc %>%
+  group_by(task, congruent, cb_order) %>%
+  summarise(m = mean(acc), se = sem(acc))
+
+limits <- aes(ymax = m + se, ymin = m - se)
+
+ggplot(acc_avgs, aes(x=congruent, y=m, fill=cb_order)) + 
+  geom_bar(stat="identity", position="dodge") + 
+  facet_grid(~task) + 
+  theme_classic() + 
+  labs(x = "Trial Type", y = "% Correct", title = "Color Naming Accuracy") +
+  geom_errorbar(limits, position=position_dodge(width=.9), width=0.25) +
+  theme(text = element_text(size=17))
+
+task_eta2 <- (1.2937/(1.2937 + .0018 + .0778 + .0227 + .0007 + .0614 + .6794))
+congruency_eta2 <- (.5696/(.5696 + .0145 + .0311 + .0004 + .4481))
+task_congruency_eta2 <-(.1907/(.1907 + .0831 + .4081))
+task_congruency_cb_eta2 <-(.0831/(.1907 + .0831 + .4081))
+task_cb_eta2 <- (.0778/(1.2937 + .0018 + .0778 + .0227 + .0007 + .0614 + .6794))
+```
+
+``` {r for table 1}
+across_sub_acc_avgs_t1 <- sub_d_acc %>%
+  group_by(task, congruent) %>%
+  summarise(acc_across = mean(acc), sd = sd(acc))
+```
+
+``` {r probe performance - RT}
+# two-tailed t test
+
+sub_probe_d <- d %>%
+  group_by(subid, congruent) %>%
+  summarise(count = n(), probe = mean(total_same_RT), se = sem(total_same_RT))
+
+across_sub_probe_avgs <- sub_probe_d %>%
+  group_by(congruent) %>%
+  summarise(probe_across = mean(probe), se = sem(probe))
+
+limits <- aes(ymax = probe_across + se, ymin = probe_across - se)
+
+ggplot(across_sub_probe_avgs, aes(x=congruent, y=probe_across, fill=congruent)) + 
+  geom_bar(stat="identity") + 
+  theme_classic() + 
+  labs(x = "Trial Type", y = "% Correct", title = "WM  Accuracy") +
+  geom_errorbar(limits, position=position_dodge(width=.9), width=0.25) +
+  theme(text = element_text(size=17)) +
+  theme(legend.position="none")
+
+t.test(sub_probe_d$probe[sub_probe_d$congruent == 'Congruent'], sub_probe_d$probe[sub_probe_d$congruent == 'Incongruent'], var.equal = TRUE, paired = TRUE) # p < .01
+```
+
+
+``` {r visualize sameRT}
+across_subs_same <- by_sub %>%
+  filter(task == "wm") %>%
+  group_by(congruent) %>%
+  summarise(same_across = mean(same), se=sem(same))
+
+same_limits <- aes(ymax = same_across + se, ymin = same_across - se)
+
+ggplot(across_subs_same, aes(x=congruent, y=same_across, fill=congruent)) + 
+  geom_bar(stat="identity") + 
+  theme_classic() + 
+  labs(x = "", y = "WM RT (ms)", title = "WM Probe RT") +
+  geom_errorbar(same_limits, position=position_dodge(width=.9), width=0.25) +
+  theme(text = element_text(size=17)) +
+  theme(legend.position="none")
+```
+
+``` {r for table 1}
+across_sub_probe_avgs_t1 <- sub_probe_d %>%
+  group_by(congruent) %>%
+  summarise(probe_across = mean(probe), sd = sd(probe))
+```
+
+``` {r probe performance - accuracy}
+# two-tailed t test
+
+sub_probe_d_acc <- d %>%
+  filter(!is.na(sameAccurate)) %>%
+  mutate(sameAcc = ifelse(colorAccReal, 'corr', 'incorr')) %>%
+  group_by(subid, congruent, sameAcc) %>%
+  summarise(count = n()) %>%
+  filter(!is.na(sameAcc)) %>%
+  spread(sameAcc, count) %>%
+  mutate(acc = corr/(corr+incorr))
+
+t.test(sub_probe_d_acc$acc[sub_probe_d_acc$congruent == 'Congruent'], sub_probe_d_acc$acc[sub_probe_d_acc$congruent == 'Incongruent'], var.equal = TRUE, paired = TRUE) # p = .014
+
+sub_probe_d_acc <- sub_probe_d_acc %>%
+  filter(!is.na(acc))
+
+probe_acc_avgs <- sub_probe_d_acc %>%
+  group_by(congruent) %>%
+  summarise(m = mean(acc), se = sem(acc))
+
+limits <- aes(ymax = m + se, ymin = m - se)
+
+ggplot(probe_acc_avgs, aes(x=congruent, y=m, fill=congruent)) + 
+  geom_bar(stat="identity", position="dodge") + 
+  theme_classic() + 
+  labs(x = "Trial Type", y = "% Correct", title = "Probe Accuracy") +
+  geom_errorbar(limits, position=position_dodge(width=.9), width=0.25) +
+  theme(text = element_text(size=17)) +
+  theme(legend.position="none")
+```
+
+``` {r for table 1}
+across_sub_probe_acc_avgs_t1 <- sub_probe_d_acc %>%
+  group_by(congruent) %>%
+  summarise(acc_across = mean(acc), sd = sd(acc))
+```
